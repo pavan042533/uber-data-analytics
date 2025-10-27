@@ -11,7 +11,7 @@ type RatingRepo struct{}
 
 func (r *RatingRepo) GetAverageCustomerRating(db *gorm.DB) (float64, error) {
 	var avgRating float64
-	err := db.Model(&models.Ride{}).Select("AVG(customer_rating)").Where("customer_rating IS NOT NULL").Scan(&avgRating).Error
+	err := db.Model(&models.Ride{}).Select("ROUND(AVG(customer_rating),2)").Where("customer_rating IS NOT NULL").Scan(&avgRating).Error
 	if err != nil {
 		return 0, err
 	}
@@ -24,7 +24,7 @@ func (r *RatingRepo) GetAverageRatingPerCustomer(db *gorm.DB) (map[string]float6
 		AvgRating  float64
 	}
 	var results []Result
-	err := db.Model(&models.Ride{}).Select("customer_id, AVG(customer_rating) as avg_rating").Where("customer_rating IS NOT NULL").Group("customer_id").Scan(&results).Error
+	err := db.Model(&models.Ride{}).Select("customer_id, ROUND(AVG(customer_rating),2) as avg_rating").Where("customer_rating IS NOT NULL").Group("customer_id").Scan(&results).Error
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (r *RatingRepo) GetAverageRatingPerCustomer(db *gorm.DB) (map[string]float6
 
 func (r *RatingRepo) GetAverageDriverRating(db *gorm.DB) (float64, error) {
 	var avgRating float64
-	err := db.Model(&models.Ride{}).Select("AVG(driver_ratings)").Where("driver_ratings IS NOT NULL").Scan(&avgRating).Error
+	err := db.Model(&models.Ride{}).Select("ROUND(AVG(driver_ratings),2)").Where("driver_ratings IS NOT NULL").Scan(&avgRating).Error
 	if err != nil {
 		return 0, err
 	}
@@ -53,7 +53,7 @@ type VehicleRating struct {
 func (r *RatingRepo) GetHighestRatedVehicleByCustomer(db *gorm.DB) (VehicleRating, error) {
 	var vehicleRating VehicleRating
 	err := db.Model(&models.Ride{}).
-	          Select("vehicle_type, COUNT(customer_rating) as total_ratings, AVG(customer_rating) as avg_rating").
+	          Select("vehicle_type, COUNT(customer_rating) as total_ratings, ROUND(AVG(customer_rating),2) as avg_rating").
 			  Where("customer_rating IS NOT NULL").
 			  Group("vehicle_type").
 			  Order("avg_rating DESC").
@@ -68,10 +68,10 @@ func (r *RatingRepo) GetHighestRatedVehicleByCustomer(db *gorm.DB) (VehicleRatin
 func (r *RatingRepo) GetSortedVehicleTypesByRating(db *gorm.DB) ([]VehicleRating, error) {
 	var vehicleRatings []VehicleRating
 	err := db.Model(&models.Ride{}).
-	          Select("vehicle_type, COUNT(customer_rating) as total_ratings, AVG(customer_rating) as avg_rating").
+	          Select("vehicle_type, COUNT(customer_rating) as total_ratings, ROUND(AVG(customer_rating),2) as avg_rating").
 			  Where("customer_rating IS NOT NULL").
 			  Group("vehicle_type").
-			  Order("avg_rating DESC , total_ratings DESC ").
+			  Order("total_ratings DESC, avg_rating DESC").
 			  Scan(&vehicleRatings).Error
 	if err != nil {
 		return nil, err
@@ -82,7 +82,7 @@ func (r *RatingRepo) GetSortedVehicleTypesByRating(db *gorm.DB) ([]VehicleRating
 func (r *RatingRepo) GetMostSatisfiedVehicleTypeByDrivers(db *gorm.DB) (VehicleRating, error) {
 	var vehicleRating VehicleRating
 	err := db.Model(&models.Ride{}).
-	          Select("vehicle_type, COUNT(driver_ratings) as total_ratings, AVG(driver_ratings) as avg_rating").
+	          Select("vehicle_type, COUNT(driver_ratings) as total_ratings, ROUND(AVG(driver_ratings),2) as avg_rating").
 			  Where("driver_ratings IS NOT NULL").
 			  Group("vehicle_type").
 			  Order("avg_rating DESC").

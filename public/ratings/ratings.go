@@ -53,7 +53,7 @@ func RatingsByVeichelType(c *fiber.Ctx) error{
 	}
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"Highest Rated Vehicle By Customer": HighestRatedVehicleByCustomer,
-		"Sorted Vehicle Types By Rating": SortedVeichelTpes,
+		"Sorted Vehicle Types By Frequency and rating": SortedVeichelTpes,
 		"Most Satisfied Vehicle Type By Drivers": MostSatisfiedVeichelTypeByDriverws,
 	})
 }
